@@ -1,0 +1,197 @@
+import 'dart:convert';
+import 'package:developerhub/View/Screens/homescreen.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+
+class loginscreen extends StatefulWidget {
+  const loginscreen({super.key});
+
+  @override
+  State<loginscreen> createState() => _loginscreenState();
+}
+
+class _loginscreenState extends State<loginscreen> {
+  final GlobalKey<FormState> formkey = GlobalKey();
+
+  TextEditingController emailcontroller = TextEditingController();
+  TextEditingController passwordcontroller = TextEditingController();
+  bool _obsecureText = false;
+
+  Map<String, String> validdata = {'email': '', 'password': ''};
+
+  Future authdata() async {
+    if (formkey.currentState!.validate()) {
+      return;
+    }
+    formkey.currentState?.save();
+  }
+
+  String? validateEmail(String? value) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,6}$');
+
+    if (value == null || value.isEmpty) {
+      return 'Please enter correct email address';
+    } else if (!emailRegex.hasMatch(value!)) {
+      return 'Please enter a valid email address';
+      // return true;
+    } else {
+      // return false;
+    }
+  }
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor:  CupertinoColors.activeGreen,
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        title: const Text('Login',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 25,
+                fontWeight: FontWeight.bold)),
+        iconTheme:const IconThemeData(
+          color: Colors.white,
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Form(
+          key: formkey,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 80),
+            child: Column(children: [
+              Container(
+                height: 200,
+                width: double.infinity,
+                child: Image.asset('assets/login.webp'),
+              ),
+             const SizedBox(height: 10,),
+              GestureDetector(
+                onTap: (){},
+                child: TextFormField(
+                  controller: emailcontroller,
+                  validator: validateEmail,
+                  decoration: InputDecoration(
+                    hintText: 'Email',
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.green),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.green),
+                      borderRadius: BorderRadius.circular(30),),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: (){},
+                child: TextFormField(
+                  controller: passwordcontroller,
+                  validator: (value) {
+                    if (value!.isEmpty || value.length < 5) {
+                      return "Please enter a valid password";
+                    }
+                  },
+                  onSaved: (value) {
+                    validdata['password'] = value!;
+                  },
+                  obscureText: _obsecureText,
+                  onChanged: (value) {
+                    if (value.isNotEmpty) {
+                      setState(() {
+                        _obsecureText = true;
+                      });
+                    } else {
+                      setState(() {
+                        _obsecureText = false;
+                      });
+                    }
+                  },
+                  obscuringCharacter: ('*'),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.password_outlined),
+                    suffixIcon: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _obsecureText = !_obsecureText;
+                          });
+                        },
+                        child: Icon(_obsecureText
+                            ? Icons.visibility
+                            : Icons.visibility_off)
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.green),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.green),
+                      borderRadius: BorderRadius.circular(30),),
+                  ),
+                ),
+
+              ),
+
+              const SizedBox(height: 15),
+             const Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                   Text(
+                    'Forgot Password ?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14,decoration:TextDecoration.underline),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10,),
+              ElevatedButton(
+                style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(150, 50)),
+                    maximumSize: MaterialStateProperty.all(const Size(150, 50)),
+
+                    backgroundColor: MaterialStateProperty.all(Colors.green)),
+                onPressed: () async {
+                  if(formkey.currentState!.validate()){
+                    authdata();
+                  }
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Homescreen() ));
+                },
+                child: const Text('Login', style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+import 'package:flutter/material.dart';
+
+class Homescreen extends StatefulWidget {
+  const Homescreen({super.key});
+
+  @override
+  State<Homescreen> createState() => _HomescreenState();
+}
+
+class _HomescreenState extends State<Homescreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title:const Text('Home Page'),),
+    );
+  }
+}
