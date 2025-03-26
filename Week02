@@ -1,1 +1,148 @@
+//  Home Screen Code Increament and decreament Button and Adding Tasks
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  TextEditingController taskcontroller  = TextEditingController();
+  int counter = 0;
+  List<String> tasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadCounter();
+    loadTasks();
+  }
+
+  void loadCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      counter = prefs.getInt('counter') ?? 0;
+    });
+  }
+
+  void saveCounter() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt('counter', counter);
+  }
+
+  void incrementCounter() {
+    setState(() {
+      counter++;
+    });
+    saveCounter();
+  }
+
+  void decrementCounter() {
+    setState(() {
+      counter--;
+    });
+    saveCounter();
+  }
+
+  void loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      tasks = prefs.getStringList('tasks') ?? [];
+    });
+  }
+
+  void saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('tasks', tasks);
+  }
+
+  void addTask(String task) {
+    setState(() {
+      tasks.add(task);
+    });
+    saveTasks();
+    taskcontroller.clear();
+
+  }
+
+  void removeTask(int index) {
+    setState(() {
+      tasks.removeAt(index);
+    });
+    saveTasks();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: CupertinoColors.activeGreen,
+          centerTitle: true,
+          title: const Text(
+            'App Counter',
+            style: TextStyle(color: Colors.white),
+          )),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text('Counter: $counter', style: const TextStyle(fontSize: 24)),
+           const SizedBox(height: 15,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(40, 20),
+                      backgroundColor: Colors.blue,
+                    ),
+                    onPressed: incrementCounter,
+                    child: const Text(
+                      '+',
+                      style: TextStyle(color: Colors.white, fontSize: 25),
+                    )),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(40, 20),
+                      backgroundColor: Colors.blue,
+                    ),
+                    onPressed: decrementCounter,
+                    child: const Text(
+                      '-',
+                      style: TextStyle(color: Colors.white, fontSize: 25),
+                    )),
+              ],
+            ),
+
+            Flexible(
+              child: ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(tasks[index]),
+                    trailing: IconButton(
+                      icon:const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => removeTask(index),
+                    ),
+                  );
+                },
+              ),
+            ),
+            TextField(
+              controller: taskcontroller,
+              decoration: const InputDecoration(labelText: 'Enter Task'),
+              onSubmitted: addTask,
+
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
