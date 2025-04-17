@@ -1,1 +1,167 @@
+      //  User Profile //
+  
+class User {
+  final String name;
+  final String email;
+  final String avatarUrl;
+
+  User({required this.name, required this.email, required this.avatarUrl});
+
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
+    );
+  }
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../../Models/UserProfile.dart';
+class UserProfileScreen extends StatelessWidget {
+  Future<User> fetchUser() async {
+    await Future.delayed(const Duration(seconds: 2));
+    return User(
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          backgroundColor: CupertinoColors.activeGreen,
+          centerTitle: true,
+          title: const Text('User Profile',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold)
+          ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+      ),
+      body: FutureBuilder<User>(
+        future: fetchUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(snapshot.data!.avatarUrl),
+                      radius: 50,
+                    ),
+                     const SizedBox(height: 20),
+                    Text(snapshot.data!.name, style: const TextStyle(fontSize: 24)),
+                    Text(snapshot.data!.email),
+                  ],
+                ),
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
+    );
+  }
+}
+}
+
+//  Post Json Response List//
+class Post {
+  final int id;
+  final String title;
+  final String body;
+
+  Post({required this.id, required this.title, required this.body});
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      id: json['id'],
+      title: json['title'],
+      body: json['body'],
+    );
+  }
+}
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import '../../Models/postlist.dart';
+
+class PostListScreen extends StatefulWidget {
+  @override
+  _PostListScreenState createState() => _PostListScreenState();
+}
+
+class _PostListScreenState extends State<PostListScreen> {
+  late Future<List<Post>> posts;
+
+  Future<List<Post>> fetchPosts() async {
+    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((data) => Post.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load posts');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    posts = fetchPosts();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          backgroundColor: CupertinoColors.activeGreen,
+          centerTitle: true,
+          title: const Text('Posts Json Response List',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold)
+          ),
+        iconTheme: const IconThemeData(
+        color: Colors.white,
+      ),
+      ),
+      body: FutureBuilder<List<Post>>(
+        future: posts,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ListView(
+              children: snapshot.data!
+                  .map((post) => ListTile(
+                title: Text(post.title),
+                subtitle: Text(post.body),
+              ))
+                  .toList(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          return Center(child: CircularProgressIndicator());
+        },
+      ),
+    );
+  }
+}
+
 
