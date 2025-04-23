@@ -1,0 +1,199 @@
+                 // To-Do-List Task With Provider State Manegement
+// Task Screen
+import 'package:flutter/material.dart';
+import 'package:loginsignup_firebase/task_provider.dart';
+import 'package:provider/provider.dart';
+
+class TaskScreen extends StatefulWidget {
+  const TaskScreen({super.key});
+
+  @override
+  State<TaskScreen> createState() => _TaskScreenState();
+}
+
+class _TaskScreenState extends State<TaskScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final taskProvider = Provider.of<TaskProvider>(context);
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F8),
+      appBar: AppBar(
+        title: const Text('To - Do - Tasks Lists',style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.teal,
+        elevation: 2,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(1, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter a new task...',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                  onPressed: () {
+                    if (_controller.text.trim().isNotEmpty) {
+                      taskProvider.addTask(_controller.text.trim());
+                      _controller.clear();
+                    }
+                  },
+                  child: const Icon(Icons.add, size: 22),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: taskProvider.tasks.isEmpty
+                ? const Center(
+              child: Text(
+                'No tasks added yet!',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            )
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: taskProvider.tasks.length,
+              itemBuilder: (context, index) {
+                final task = taskProvider.tasks[index];
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: task.isDone ? Colors.teal[50] : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: Offset(2, 3),
+                      )
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    title: Text(
+                      task.title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        decoration: task.isDone
+                            ? TextDecoration.lineThrough
+                            : null,
+                        color: task.isDone ? Colors.grey[700] : Colors.black,
+                      ),
+                    ),
+                    onTap: () => taskProvider.toggleTask(index),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      onPressed: () => taskProvider.removeTask(index),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+//  Task Model
+
+class Task {
+  final String title;
+  bool isDone;
+
+  Task({required this.title, this.isDone = false});
+
+  void toggleDone() {
+    isDone = !isDone;
+  }
+}
+
+// Task Provider 
+
+import 'package:flutter/foundation.dart';
+
+import 'Model/task.dart';
+
+class TaskProvider with ChangeNotifier {
+  final List<Task> _tasks = [];
+
+  List<Task> get tasks => _tasks;
+
+  void addTask(String title) {
+    _tasks.add(Task(title: title));
+    notifyListeners();
+  }
+
+  void removeTask(int index) {
+    _tasks.removeAt(index);
+    notifyListeners();
+  }
+
+  void toggleTask(int index) {
+    _tasks[index].toggleDone();
+    notifyListeners();
+  }
+}
+
+// main Class 
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => TaskProvider(),
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'To-Do App',
+      theme: ThemeData(primarySwatch: Colors.teal),
+      home: const TaskScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
